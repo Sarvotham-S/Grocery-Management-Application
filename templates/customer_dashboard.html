@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Store Offerings</h2>
+    <a href="{{ url_for('view_cart') }}" class="btn btn-lg btn-success shadow-sm">
+        🛒 View Cart
+    </a>
+</div>
+
+<!-- Products Grid -->
+<div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+    {% for product in products %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-white border-bottom-0 d-flex justify-content-between pt-3">
+                <span class="badge bg-info">{{ product.category.name }}</span>
+                <strong class="text-primary">Rs.{{ product.price }} / {{ product.units }}</strong>
+            </div>
+            <div class="card-body pt-1">
+                <h5 class="card-title">{{ product.name }}</h5>
+                <p class="card-text text-muted small">
+                    {% if product.expiry_date %}
+                        Expires: {{ product.expiry_date.strftime('%Y-%m-%d') }}
+                    {% else %}
+                        No expiry date.
+                    {% endif %}
+                </p>
+                
+                {% if product.stock > 0 %}
+                    <p class="text-success small mb-2">In Stock: {{ product.stock }}</p>
+                    <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}" class="input-group">
+                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="form-control">
+                        <button type="submit" class="btn btn-outline-primary">Add to Cart</button>
+                    </form>
+                {% else %}
+                    <p class="text-danger small mb-2 fw-bold">Out of Stock</p>
+                    <button class="btn btn-secondary w-100" disabled>Unavailable</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center">
+        <p class="text-muted">The store is currently empty. Check back later!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Order History -->
+<div class="card shadow">
+    <div class="card-header bg-secondary text-white">
+        <h5 class="mb-0">Your Order History</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Order ID</th>
+            <th>Date & Time (IST)</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td>#{{ order.id }}</td>
+            <!-- Using our custom Jinja filter to show IST -->
+            <td>{{ order.order_date | to_ist }}</td>
+            <td>Rs.{{ order.total_amount }}</td>
+            <td>
+                <span class="badge 
+                    {% if order.status == 'Cancelled' %}bg-danger
+                    {% elif order.status == 'Delivered' %}bg-success
+                    {% else %}bg-dark{% endif %}">
+                    {{ order.status }}
+                </span>
+            </td>
+            <td>
+                <!-- Only show Cancel button if order is Pending or Confirmed -->
+                {% if order.status in ['Pending', 'Confirmed'] %}
+                <form method="POST" action="{{ url_for('cancel_order', order_id=order.id) }}" onsubmit="return confirm('Are you sure you want to cancel this order?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Order</button>
+                </form>
+                {% else %}
+                <span class="text-muted small">N/A</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-center">You haven't placed any orders yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+    </div>
+</div>
+{% endblock %}
