@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product #{{ product.id }} - FreshMart Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 780px;">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-2">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_items') }}">Manage Items</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Edit #{{ product.id }}</li>
+    </ol>
+  </nav>
+
+  <div class="cart-card p-4">
+    <div class="d-flex align-items-center justify-content-between pb-3 border-bottom mb-4">
+      <div>
+        <h3 class="fw-bold mb-0">
+          <i class="fa-solid fa-pen-to-square text-success me-2"></i> Edit Product: {{ product.name }}
+        </h3>
+        <span class="text-muted small">Database Record #{{ product.id }}</span>
+      </div>
+      <a href="{{ url_for('admin_items') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Inventory
+      </a>
+    </div>
+
+    <!-- Live Preview Banner -->
+    <div class="d-flex align-items-center p-3 mb-4 bg-light rounded-3 border">
+      <img
+        src="{{ product.image_url }}"
+        alt="{{ product.name }}"
+        id="editImagePreview"
+        style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px;"
+        class="me-3 border"
+        onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+      >
+      <div>
+        <h5 class="fw-bold mb-1">{{ product.name }}</h5>
+        <div class="text-muted small">Current Price: ₹{{ "%.2f"|format(product.price) }} / {{ product.unit }} | Stock: {{ product.stock }} units</div>
+      </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('admin_edit_item', id=product.id) }}">
+      <div class="row g-3">
+        <!-- Name -->
+        <div class="col-md-8">
+          <label for="name" class="form-label">Product Name *</label>
+          <input
+            type="text"
+            class="form-control fresh-input"
+            id="name"
+            name="name"
+            value="{{ product.name }}"
+            required
+          >
+        </div>
+
+        <!-- Category -->
+        <div class="col-md-4">
+          <label for="category_id" class="form-label">Category *</label>
+          <select class="form-select fresh-input" id="category_id" name="category_id" required>
+            {% for cat in categories %}
+              <option value="{{ cat.id }}" {% if cat.id == product.category_id %}selected{% endif %}>
+                {{ cat.icon }} {{ cat.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Price -->
+        <div class="col-md-4">
+          <label for="price" class="form-label">Selling Price (₹) *</label>
+          <div class="input-group">
+            <span class="input-group-text">₹</span>
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              class="form-control fresh-input"
+              id="price"
+              name="price"
+              value="{{ product.price }}"
+              required
+            >
+          </div>
+        </div>
+
+        <!-- Stock -->
+        <div class="col-md-4">
+          <label for="stock" class="form-label">Stock Units *</label>
+          <input
+            type="number"
+            min="0"
+            class="form-control fresh-input"
+            id="stock"
+            name="stock"
+            value="{{ product.stock }}"
+            required
+          >
+        </div>
+
+        <!-- Unit -->
+        <div class="col-md-4">
+          <label for="unit" class="form-label">Unit of Measure *</label>
+          <input
+            type="text"
+            class="form-control fresh-input"
+            id="unit"
+            name="unit"
+            value="{{ product.unit }}"
+            required
+          >
+        </div>
+
+        <!-- Image URL -->
+        <div class="col-12">
+          <label for="image_url" class="form-label">Image URL</label>
+          <input
+            type="url"
+            class="form-control fresh-input"
+            id="image_url"
+            name="image_url"
+            value="{{ product.image_url }}"
+            onchange="document.getElementById('editImagePreview').src = this.value"
+          >
+        </div>
+
+        <!-- Description -->
+        <div class="col-12">
+          <label for="description" class="form-label">Description</label>
+          <textarea
+            class="form-control fresh-input"
+            id="description"
+            name="description"
+            rows="3"
+          >{{ product.description or '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <a href="{{ url_for('admin_items') }}" class="btn btn-secondary-fresh">Cancel</a>
+        <button type="submit" class="btn btn-primary-fresh px-4">
+          <i class="fa-solid fa-floppy-disk me-1"></i> Update Product
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

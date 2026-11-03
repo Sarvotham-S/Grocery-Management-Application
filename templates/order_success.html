@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmed - FreshMart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="order-success-card">
+    <!-- Success Animated Check -->
+    <div class="success-badge-icon">
+      <i class="fa-solid fa-check"></i>
+    </div>
+
+    <h2 class="fw-bold mb-1">Thank You! Order Placed Successfully</h2>
+    <p class="text-muted mb-4">
+      Your fresh groceries have been received and sent to our packing station.
+    </p>
+
+    <!-- Order Metadata Banner -->
+    <div class="bg-light p-3 rounded-3 mb-4 text-start">
+      <div class="row g-3">
+        <div class="col-sm-6 col-md-3">
+          <div class="text-muted small">Order Reference</div>
+          <div class="fw-bold text-dark">#FM-{{ order.id }}</div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="text-muted small">Status</div>
+          <div>
+            <span class="status-pill status-pending">
+              <i class="fa-solid fa-clock"></i> {{ order.status }}
+            </span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="text-muted small">Payment Method</div>
+          <div class="fw-semibold text-dark">
+            <i class="fa-solid fa-wallet text-success me-1"></i> {{ order.payment_method }}
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="text-muted small">Total Paid</div>
+          <div class="fw-bold text-success fs-5">₹{{ "%.2f"|format(order.total_amount) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Address Info -->
+    <div class="text-start mb-4 p-3 border rounded">
+      <h6 class="fw-bold mb-1 text-secondary">
+        <i class="fa-solid fa-location-dot text-danger me-1"></i> Delivery Address
+      </h6>
+      <p class="small text-muted mb-0">{{ order.address }}</p>
+    </div>
+
+    <!-- Items Purchased -->
+    <div class="text-start mb-4">
+      <h6 class="fw-bold mb-3 text-secondary">
+        <i class="fa-solid fa-basket-shopping text-success me-1"></i> Ordered Items
+      </h6>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th class="text-center">Unit Price</th>
+              <th class="text-center">Qty</th>
+              <th class="text-end">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center">
+                    <img
+                      src="{{ item.image_url }}"
+                      alt="{{ item.name }}"
+                      style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px;"
+                      class="me-2 border"
+                      onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+                    >
+                    <div>
+                      <span class="fw-semibold small">{{ item.name }}</span>
+                      <div class="text-muted" style="font-size: 0.72rem;">{{ item.unit }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center small">₹{{ "%.2f"|format(item.price_at_purchase) }}</td>
+                <td class="text-center small">{{ item.quantity }}</td>
+                <td class="text-end fw-bold text-success small">
+                  ₹{{ "%.2f"|format(item.price_at_purchase * item.quantity) }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex flex-column flex-sm-row justify-content-center gap-3">
+      <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh px-4">
+        <i class="fa-solid fa-cart-shopping me-1"></i> Continue Shopping
+      </a>
+      <a href="{{ url_for('my_orders') }}" class="btn btn-secondary-fresh px-4">
+        <i class="fa-solid fa-clock-rotate-left me-1"></i> Track in My Orders
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

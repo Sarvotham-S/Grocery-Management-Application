@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - FreshMart Order{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="mb-4">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('shop') }}">Shop</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('view_cart') }}">Cart</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Checkout & Payment</li>
+      </ol>
+    </nav>
+    <h2 class="fw-bold mb-1">
+      <i class="fa-solid fa-credit-card text-success me-2"></i> Finalize Your Order
+    </h2>
+    <p class="text-muted small">Please verify your delivery address and choose your preferred payment method.</p>
+  </div>
+
+  <form method="POST" action="{{ url_for('checkout') }}" id="checkoutForm">
+    <div class="row g-4">
+      <!-- Left Column: Delivery Address & Order Review -->
+      <div class="col-lg-7">
+        <!-- Delivery Address Box -->
+        <div class="cart-card p-4 mb-4">
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <span class="badge bg-success rounded-circle me-2" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">1</span>
+            Shipping &amp; Delivery Destination
+          </h5>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Recipient Name</label>
+              <input type="text" class="form-control" value="{{ user.full_name or user.username }}" readonly>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Account Email</label>
+              <input type="email" class="form-control" value="{{ user.email or '' }}" readonly>
+            </div>
+            <div class="col-12">
+              <label for="address" class="form-label">Complete Street Address, Flat / House No, Landmark &amp; PIN *</label>
+              <textarea
+                class="form-control fresh-input"
+                id="address"
+                name="address"
+                rows="3"
+                placeholder="e.g. Flat 302, Green Meadows Heights, 12th Main Road, HAL 2nd Stage, Indiranagar, Bengaluru - 560038"
+                required
+              >Flat 302, Green Meadows Heights, Indiranagar, Bengaluru - 560038</textarea>
+              <div class="form-text">Our delivery rider will bring your items directly to this doorstep.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Items Summary Review -->
+        <div class="cart-card p-4">
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <span class="badge bg-success rounded-circle me-2" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">2</span>
+            Basket Review ({{ cart_data.cart_items|length }} Unique Items)
+          </h5>
+
+          <div class="list-group list-group-flush">
+            {% for item in cart_data.cart_items %}
+              <div class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="{{ item.image_url }}"
+                    alt="{{ item.name }}"
+                    style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px;"
+                    class="me-3 border"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+                  >
+                  <div>
+                    <div class="fw-semibold small">{{ item.name }}</div>
+                    <div class="text-muted" style="font-size: 0.78rem;">Qty: {{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}</div>
+                  </div>
+                </div>
+                <div class="fw-bold text-success small">
+                  ₹{{ "%.2f"|format(item.item_total) }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Payment Method Selection & Bill -->
+      <div class="col-lg-5">
+        <div class="cart-card p-4 mb-4">
+          <h5 class="fw-bold mb-3 d-flex align-items-center">
+            <span class="badge bg-success rounded-circle me-2" style="width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem;">3</span>
+            Select Payment Method
+          </h5>
+
+          <!-- 1. UPI Option -->
+          <div class="payment-card-option selected" id="opt-upi">
+            <input class="payment-radio-input" type="radio" name="payment_method" id="pay_upi" value="UPI" checked>
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between">
+                <label class="payment-title mb-0 cursor-pointer" for="pay_upi">UPI Instant Payment</label>
+                <i class="fa-solid fa-mobile-screen payment-icon text-success"></i>
+              </div>
+              <p class="payment-desc">Pay using Google Pay, PhonePe, Paytm, or BHIM UPI.</p>
+
+              <!-- UPI Details Input Pane -->
+              <div class="payment-details-pane active" id="pane-UPI">
+                <label for="upi_id" class="form-label small mb-1">Enter your Virtual Payment Address (VPA)</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="fa-solid fa-at"></i></span>
+                  <input type="text" class="form-control" id="upi_id" placeholder="yourname@okaxis or mobile@upi" value="freshcustomer@okhdfcbank">
+                </div>
+                <div class="small text-muted mt-1" style="font-size: 0.76rem;">A collect request will be triggered on your UPI app.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Debit / Credit Card Option -->
+          <div class="payment-card-option" id="opt-card">
+            <input class="payment-radio-input" type="radio" name="payment_method" id="pay_card" value="Card">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between">
+                <label class="payment-title mb-0 cursor-pointer" for="pay_card">Credit / Debit Card</label>
+                <i class="fa-regular fa-credit-card payment-icon text-primary"></i>
+              </div>
+              <p class="payment-desc">Visa, MasterCard, RuPay, and American Express accepted.</p>
+
+              <!-- Card Details Input Pane -->
+              <div class="payment-details-pane" id="pane-Card">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label small mb-1">Card Number</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="4532 •••• •••• 8821" maxlength="19">
+                  </div>
+                  <div class="col-7">
+                    <label class="form-label small mb-1">Expiry Date</label>
+                    <input type="text" class="form-control form-control-sm" placeholder="MM/YY" maxlength="5">
+                  </div>
+                  <div class="col-5">
+                    <label class="form-label small mb-1">CVV</label>
+                    <input type="password" class="form-control form-control-sm" placeholder="•••" maxlength="4">
+                  </div>
+                </div>
+                <div class="small text-muted mt-1" style="font-size: 0.76rem;">(Card payment simulation - test cards welcome)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Cash on Delivery (COD) Option -->
+          <div class="payment-card-option" id="opt-cod">
+            <input class="payment-radio-input" type="radio" name="payment_method" id="pay_cod" value="COD">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center justify-content-between">
+                <label class="payment-title mb-0 cursor-pointer" for="pay_cod">Cash / UPI on Delivery (COD)</label>
+                <i class="fa-solid fa-hand-holding-dollar payment-icon text-warning"></i>
+              </div>
+              <p class="payment-desc">Pay cash or scan rider's QR code when groceries arrive.</p>
+
+              <!-- COD Details Pane -->
+              <div class="payment-details-pane" id="pane-COD">
+                <div class="alert alert-info py-2 px-3 small mb-0">
+                  <i class="fa-solid fa-circle-info me-1"></i> Exact change appreciated. Digital UPI scan available at delivery.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bill Details Sticky Summary -->
+        <div class="summary-card">
+          <h5 class="summary-title">Payment Breakdown</h5>
+
+          <div class="summary-row">
+            <span>Items Subtotal</span>
+            <span>₹{{ "%.2f"|format(cart_data.subtotal) }}</span>
+          </div>
+
+          <div class="summary-row">
+            <span>Delivery Charges</span>
+            <span>
+              {% if cart_data.delivery_fee == 0 %}
+                <span class="delivery-free-tag">FREE</span>
+              {% else %}
+                ₹{{ "%.2f"|format(cart_data.delivery_fee) }}
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="summary-row">
+            <span>Applicable GST (5%)</span>
+            <span>₹{{ "%.2f"|format(cart_data.gst) }}</span>
+          </div>
+
+          <div class="summary-row total-row">
+            <span>Total Payable</span>
+            <span class="text-success">₹{{ "%.2f"|format(cart_data.total) }}</span>
+          </div>
+
+          <button type="submit" class="btn btn-primary-fresh w-100 py-3 fw-bold fs-6">
+            <i class="fa-solid fa-bag-shopping me-2"></i> Confirm &amp; Place Order
+          </button>
+
+          <div class="text-center mt-3 text-muted small">
+            By placing this order you agree to FreshMart terms of grocery dispatch.
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

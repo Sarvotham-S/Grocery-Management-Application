@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - FreshMart Grocery Store{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="fs-1 mb-2">🛒</div>
+      <h3 class="auth-header-title">Welcome to FreshMart</h3>
+      <p class="auth-header-subtitle">Customer &amp; administrator sign-in. Staff members should use the dedicated staff portal.</p>
+    </div>
+
+    <div class="auth-body">
+      <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
+        <div class="mb-3">
+          <label for="username" class="form-label">
+            <i class="fa-solid fa-user me-1 text-success"></i> Username
+          </label>
+          <input
+            type="text"
+            class="form-control fresh-input"
+            id="username"
+            name="username"
+            placeholder="Enter your username"
+            value="{{ username or '' }}"
+            required
+            autofocus
+          >
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <label for="password" class="form-label mb-0">
+              <i class="fa-solid fa-lock me-1 text-success"></i> Password
+            </label>
+          </div>
+          <input
+            type="password"
+            class="form-control fresh-input mt-1"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary-fresh w-100 py-2 mt-2">
+          <i class="fa-solid fa-right-to-bracket me-1"></i> Sign In to Account
+        </button>
+      </form>
+
+      <!-- Demo Credentials Quick-Fill Box -->
+      <div class="demo-credentials-box">
+        <div class="d-flex align-items-center mb-2 text-dark fw-bold">
+          <i class="fa-solid fa-key me-2 text-warning"></i>
+          <span>Quick Demo Access (Click to Fill):</span>
+        </div>
+
+        <div class="demo-cred-row">
+          <div>
+            <span class="badge badge-admin me-1">Admin</span>
+            <code>admin</code> / <code>admin123</code>
+          </div>
+          <button type="button" class="btn-quick-fill" onclick="fillDemoLogin('admin', 'admin123')">
+            Use Admin
+          </button>
+        </div>
+
+        <div class="demo-cred-row">
+          <div>
+            <span class="badge badge-customer me-1">Customer</span>
+            <code>customer1</code> / <code>cust123</code>
+          </div>
+          <button type="button" class="btn-quick-fill" onclick="fillDemoLogin('customer1', 'cust123')">
+            Use Customer
+          </button>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 pt-2 border-top">
+        <div class="mb-2">
+          <span class="text-muted small">FreshMart staff member?</span>
+          <a href="{{ url_for('staff_login') }}" class="fw-semibold ms-1 text-success">
+            Go to Staff Login Portal
+          </a>
+        </div>
+        <span class="text-muted small">New to FreshMart?</span>
+        <a href="{{ url_for('register') }}" class="fw-semibold ms-1 text-success">
+          Create a Customer Account
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}My Shopping Cart - FreshMart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="fw-bold mb-0">
+      <i class="fa-solid fa-basket-shopping text-success me-2"></i> Your FreshMart Basket
+    </h2>
+    <a href="{{ url_for('shop') }}" class="btn btn-sm btn-secondary-fresh">
+      <i class="fa-solid fa-arrow-left me-1"></i> Continue Shopping
+    </a>
+  </div>
+
+  <!-- Cart with Items -->
+  {% if cart_data.cart_items %}
+    <div class="row g-4" id="cartContentWrapper">
+      <!-- Items Table -->
+      <div class="col-lg-8" id="cartTableContainer">
+        <div class="cart-card">
+          <div class="table-responsive">
+            <table class="table cart-table align-middle">
+              <thead>
+                <tr>
+                  <th scope="col" style="min-width: 250px;">Item Details</th>
+                  <th scope="col" class="text-center">Unit Price</th>
+                  <th scope="col" class="text-center" style="min-width: 140px;">Quantity</th>
+                  <th scope="col" class="text-end">Subtotal</th>
+                  <th scope="col" class="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in cart_data.cart_items %}
+                  <tr id="cart-row-{{ item.product_id }}">
+                    <!-- Product Info -->
+                    <td>
+                      <div class="d-flex align-items-center">
+                        <img
+                          src="{{ item.image_url }}"
+                          alt="{{ item.name }}"
+                          class="cart-product-thumb me-3"
+                          onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+                        >
+                        <div>
+                          <h6 class="fw-bold mb-1">{{ item.name }}</h6>
+                          <span class="text-muted small">Unit: {{ item.unit }}</span>
+                          {% if item.stock <= 5 %}
+                            <div class="text-danger small fw-semibold">
+                              <i class="fa-solid fa-triangle-exclamation me-1"></i>Only {{ item.stock }} left!
+                            </div>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </td>
+
+                    <!-- Price -->
+                    <td class="text-center fw-semibold text-secondary">
+                      ₹{{ "%.2f"|format(item.price) }}
+                    </td>
+
+                    <!-- Quantity Controls -->
+                    <td class="text-center">
+                      <div class="qty-control-group">
+                        <button
+                          type="button"
+                          class="btn-qty-spin"
+                          data-product-id="{{ item.product_id }}"
+                          onclick="updateCartQty({{ item.product_id }}, {{ item.quantity - 1 }})"
+                          title="Decrease Quantity"
+                        >
+                          <i class="fa-solid fa-minus"></i>
+                        </button>
+
+                        <span class="qty-display-number" id="qty-val-{{ item.product_id }}">
+                          {{ item.quantity }}
+                        </span>
+
+                        <button
+                          type="button"
+                          class="btn-qty-spin"
+                          data-product-id="{{ item.product_id }}"
+                          onclick="updateCartQty({{ item.product_id }}, {{ item.quantity + 1 }})"
+                          {% if item.quantity >= item.stock %}disabled{% endif %}
+                          title="Increase Quantity"
+                        >
+                          <i class="fa-solid fa-plus"></i>
+                        </button>
+                      </div>
+                    </td>
+
+                    <!-- Item Total -->
+                    <td class="text-end fw-bold text-success" id="item-total-{{ item.product_id }}">
+                      ₹{{ "%.2f"|format(item.item_total) }}
+                    </td>
+
+                    <!-- Remove -->
+                    <td class="text-center">
+                      <button
+                        type="button"
+                        class="btn-remove-item"
+                        title="Remove product"
+                        onclick="removeFromCart({{ item.product_id }})"
+                      >
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-3 bg-light d-flex justify-content-between align-items-center">
+            <span class="small text-muted">
+              <i class="fa-solid fa-shield-halved text-success me-1"></i> Quality and Freshness Inspected
+            </span>
+            <a href="{{ url_for('shop') }}" class="small fw-semibold text-success">
+              + Add More Fresh Items
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Order Summary Card -->
+      <div class="col-lg-4" id="cartSummaryCard">
+        <div class="summary-card">
+          <h5 class="summary-title">Bill Details</h5>
+
+          <div class="summary-row">
+            <span>Item Subtotal</span>
+            <strong id="summary-subtotal">₹{{ "%.2f"|format(cart_data.subtotal) }}</strong>
+          </div>
+
+          <div class="summary-row">
+            <div>
+              <span>Delivery Fee</span>
+              <div class="small text-muted" style="font-size: 0.76rem;">Free on orders ₹500+</div>
+            </div>
+            <strong id="summary-delivery">
+              {% if cart_data.delivery_fee == 0 %}
+                <span class="delivery-free-tag">FREE</span>
+              {% else %}
+                ₹{{ "%.2f"|format(cart_data.delivery_fee) }}
+              {% endif %}
+            </strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Taxes &amp; GST (5%)</span>
+            <strong id="summary-gst">₹{{ "%.2f"|format(cart_data.gst) }}</strong>
+          </div>
+
+          <div class="summary-row total-row">
+            <span>To Pay</span>
+            <span class="text-success" id="summary-total">₹{{ "%.2f"|format(cart_data.total) }}</span>
+          </div>
+
+          <a href="{{ url_for('checkout') }}" class="btn btn-primary-fresh w-100 py-3 fw-bold">
+            Proceed to Checkout <i class="fa-solid fa-arrow-right ms-2"></i>
+          </a>
+
+          <div class="mt-3 text-center small text-muted">
+            <i class="fa-solid fa-lock me-1"></i> Safe & Secure 256-bit Encrypted Checkout
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Empty Cart State -->
+  <div id="cartEmptyState" class="empty-state-box" {% if cart_data.cart_items %}style="display: none;"{% endif %}>
+    <div class="empty-state-icon">
+      <i class="fa-solid fa-cart-shopping text-muted"></i>
+    </div>
+    <h3 class="fw-bold">Your FreshMart Basket is Empty</h3>
+    <p class="text-muted max-w-md mx-auto">
+      You haven't added any fresh groceries to your cart yet. Discover crisp fruits, fresh vegetables, snacks, and daily essentials.
+    </p>
+    <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh btn-lg px-4 mt-2">
+      <i class="fa-solid fa-carrot me-2"></i> Start Shopping Now
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Create Customer Account - FreshMart{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width: 520px;">
+    <div class="auth-header">
+      <div class="fs-1 mb-2">🌱</div>
+      <h3 class="auth-header-title">Join FreshMart Today</h3>
+      <p class="auth-header-subtitle">Create a customer account to enjoy fresh grocery delivery & exclusive savings</p>
+    </div>
+
+    <div class="auth-body">
+      <form method="POST" action="{{ url_for('register') }}">
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="full_name" class="form-label">
+              <i class="fa-solid fa-id-card me-1 text-success"></i> Full Name
+            </label>
+            <input
+              type="text"
+              class="form-control fresh-input"
+              id="full_name"
+              name="full_name"
+              placeholder="e.g. Rahul Verma"
+              value="{{ full_name or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-12">
+            <label for="email" class="form-label">
+              <i class="fa-solid fa-envelope me-1 text-success"></i> Email Address
+            </label>
+            <input
+              type="email"
+              class="form-control fresh-input"
+              id="email"
+              name="email"
+              placeholder="rahul@example.com"
+              value="{{ email or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-12">
+            <label for="username" class="form-label">
+              <i class="fa-solid fa-user me-1 text-success"></i> Username
+            </label>
+            <input
+              type="text"
+              class="form-control fresh-input"
+              id="username"
+              name="username"
+              placeholder="Choose a unique username"
+              value="{{ username or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-md-6">
+            <label for="password" class="form-label">
+              <i class="fa-solid fa-lock me-1 text-success"></i> Password
+            </label>
+            <input
+              type="password"
+              class="form-control fresh-input"
+              id="password"
+              name="password"
+              placeholder="Min 6 characters"
+              required
+            >
+          </div>
+
+          <div class="col-md-6">
+            <label for="confirm_password" class="form-label">
+              <i class="fa-solid fa-check-double me-1 text-success"></i> Confirm Password
+            </label>
+            <input
+              type="password"
+              class="form-control fresh-input"
+              id="confirm_password"
+              name="confirm_password"
+              placeholder="Repeat password"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" id="termsCheck" required checked>
+          <label class="form-check-label small text-muted" for="termsCheck">
+            I agree to FreshMart's <a href="#" class="text-success">Terms of Service</a> &amp; <a href="#" class="text-success">Privacy Policy</a>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary-fresh w-100 py-2 mt-4">
+          <i class="fa-solid fa-user-plus me-1"></i> Complete Registration
+        </button>
+      </form>
+
+      <div class="text-center mt-4 pt-2 border-top">
+        <span class="text-muted small">Already have an account?</span>
+        <a href="{{ url_for('login') }}" class="fw-semibold ms-1 text-success">
+          Sign In Here
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Shop Farm-Fresh Groceries - FreshMart{% endblock %}
+
+{% block content %}
+<div class="container pb-5">
+
+  <!-- Hero Banner -->
+  <section class="hero-section text-center">
+    <div class="hero-pill-badge mx-auto">
+      <i class="fa-solid fa-leaf text-warning"></i>
+      <span>100% Organic & Farm Harvested Daily</span>
+    </div>
+    <h1 class="hero-title">Fresh Groceries, Delivered to Your Doorstep</h1>
+    <p class="hero-subtitle mx-auto">
+      Browse our wide selection of handpicked fruits, crisp greens, farm dairy, bakery treats, and household essentials at unbeatable neighborhood prices.
+    </p>
+
+    <!-- Search Bar with Live Filter -->
+    <div class="search-wrapper">
+      <i class="fa-solid fa-magnifying-glass search-icon-inside"></i>
+      <input
+        type="text"
+        id="searchInput"
+        class="fresh-search-input"
+        placeholder="Search over 30+ items: apples, paneer, milk, tea, bread..."
+        value="{{ search_query or '' }}"
+        autocomplete="off"
+      >
+    </div>
+  </section>
+
+  <!-- Category Filter Pills -->
+  <div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+      <h5 class="fw-bold mb-0 text-dark">
+        <i class="fa-solid fa-layer-group text-success me-2"></i> Browse by Category
+      </h5>
+      {% if selected_category %}
+        <a href="{{ url_for('shop') }}" class="small text-muted fw-semibold">
+          <i class="fa-solid fa-rotate-left me-1"></i> Clear Category Filter
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="category-scroll-container">
+      <a href="{{ url_for('shop') }}" class="category-pill {% if not selected_category %}active{% endif %}">
+        <span class="cat-icon">🧺</span>
+        <span>All Aisles</span>
+      </a>
+
+      {% for cat in categories %}
+        <a
+          href="{{ url_for('shop', category=cat.id) }}"
+          class="category-pill {% if selected_category == cat.id %}active{% endif %}"
+          data-category-id="{{ cat.id }}"
+        >
+          <span class="cat-icon">{{ cat.icon }}</span>
+          <span>{{ cat.name }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Products Section Header -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h4 class="fw-bold mb-0">
+        {% if selected_category %}
+          {% for c in categories if c.id == selected_category %}
+            {{ c.icon }} {{ c.name }}
+          {% endfor %}
+        {% else %}
+          Featured Daily Grocery Selections
+        {% endif %}
+      </h4>
+      <p class="text-muted small mb-0">Showing {{ products|length }} fresh items available for order</p>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  {% if products %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="productsGrid">
+      {% for product in products %}
+        <div class="col product-col">
+          <div
+            class="product-card h-100"
+            data-id="{{ product.id }}"
+            data-name="{{ product.name }}"
+            data-desc="{{ product.description or '' }}"
+            data-category="{{ product.category_name or '' }}"
+          >
+            <!-- Image & Badges -->
+            <div class="product-img-wrapper">
+              <img
+                src="{{ product.image_url }}"
+                alt="{{ product.name }}"
+                class="product-img"
+                loading="lazy"
+                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+              >
+
+              {% if product.category_name %}
+                <span class="badge-tag-category">
+                  {{ product.category_icon or '🛍️' }} {{ product.category_name }}
+                </span>
+              {% endif %}
+
+              {% if product.stock <= 0 %}
+                <span class="badge-stock badge-stock-out">Out of Stock</span>
+              {% elif product.stock <= 5 %}
+                <span class="badge-stock badge-stock-low">Only {{ product.stock }} Left!</span>
+              {% else %}
+                <span class="badge-stock badge-stock-in"><i class="fa-solid fa-check me-1"></i>In Stock</span>
+              {% endif %}
+            </div>
+
+            <!-- Body Details -->
+            <div class="product-body">
+              <h5 class="product-name" title="{{ product.name }}">{{ product.name }}</h5>
+              <p class="product-desc">{{ product.description or 'Farm fresh and hygienically packed grocery item.' }}</p>
+
+              <div class="product-meta-row">
+                <div>
+                  <span class="product-price">₹{{ "%.2f"|format(product.price) }}</span>
+                  <span class="product-unit">/ {{ product.unit or 'piece' }}</span>
+                </div>
+              </div>
+
+              <!-- Add to Cart CTA -->
+              {% if product.stock > 0 %}
+                <button
+                  type="button"
+                  class="btn btn-add-cart"
+                  onclick="addToCart({{ product.id }}, this)"
+                >
+                  <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+              {% else %}
+                <button type="button" class="btn btn-add-cart" disabled>
+                  <i class="fa-solid fa-ban"></i> Out of Stock
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- No Match Dynamic Message for search filter -->
+    <div id="noProductsMatch" class="empty-state-box" style="display: none;">
+      <div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass text-muted"></i></div>
+      <h4 class="fw-bold">No Products Match Your Search</h4>
+      <p class="text-muted">Try typing a different term or clear the search field to see all items.</p>
+    </div>
+  {% else %}
+    <!-- Empty Database/Category State -->
+    <div class="empty-state-box">
+      <div class="empty-state-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+      <h4 class="fw-bold">No Products Found In This Section</h4>
+      <p class="text-muted">We couldn't find any products in this aisle right now. Check back shortly!</p>
+      <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh mt-2">
+        <i class="fa-solid fa-store me-1"></i> View All Products
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

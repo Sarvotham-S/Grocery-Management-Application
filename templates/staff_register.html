@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Request Staff Access - FreshMart Operations{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card" style="max-width: 520px;">
+    <div class="auth-header" style="background: linear-gradient(135deg, #0d4a28 0%, #062b16 100%);">
+      <div class="fs-1 mb-2">📝</div>
+      <h3 class="auth-header-title">Request Staff Access</h3>
+      <p class="auth-header-subtitle">Register as a FreshMart staff member &mdash; administrator approval required</p>
+    </div>
+
+    <div class="auth-body">
+      <div class="alert alert-info small d-flex align-items-start">
+        <i class="fa-solid fa-circle-info me-2 mt-1"></i>
+        <div>
+          Your account will be created with <strong>pending approval</strong> status.
+          You cannot sign in to the staff portal until an administrator approves it.
+        </div>
+      </div>
+
+      <form method="POST" action="{{ url_for('staff_register') }}">
+        <div class="row g-3">
+          <div class="col-12">
+            <label for="full_name" class="form-label">
+              <i class="fa-solid fa-id-card me-1 text-success"></i> Full Name
+            </label>
+            <input
+              type="text"
+              class="form-control fresh-input"
+              id="full_name"
+              name="full_name"
+              placeholder="e.g. Ramesh Kumar"
+              value="{{ full_name or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-12">
+            <label for="email" class="form-label">
+              <i class="fa-solid fa-envelope me-1 text-success"></i> Work Email Address
+            </label>
+            <input
+              type="email"
+              class="form-control fresh-input"
+              id="email"
+              name="email"
+              placeholder="you@freshmart.local"
+              value="{{ email or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-12">
+            <label for="username" class="form-label">
+              <i class="fa-solid fa-user me-1 text-success"></i> Staff Username
+            </label>
+            <input
+              type="text"
+              class="form-control fresh-input"
+              id="username"
+              name="username"
+              placeholder="Choose a unique username"
+              value="{{ username or '' }}"
+              required
+            >
+          </div>
+
+          <div class="col-md-6">
+            <label for="password" class="form-label">
+              <i class="fa-solid fa-lock me-1 text-success"></i> Password
+            </label>
+            <input
+              type="password"
+              class="form-control fresh-input"
+              id="password"
+              name="password"
+              placeholder="Min 6 characters"
+              required
+            >
+          </div>
+
+          <div class="col-md-6">
+            <label for="confirm_password" class="form-label">
+              <i class="fa-solid fa-check-double me-1 text-success"></i> Confirm Password
+            </label>
+            <input
+              type="password"
+              class="form-control fresh-input"
+              id="confirm_password"
+              name="confirm_password"
+              placeholder="Repeat password"
+              required
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary-fresh w-100 py-2 mt-4">
+          <i class="fa-solid fa-paper-plane me-1"></i> Submit Staff Registration
+        </button>
+      </form>
+
+      <div class="text-center mt-4 pt-2 border-top">
+        <div class="mb-2">
+          <span class="text-muted small">Already approved?</span>
+          <a href="{{ url_for('staff_login') }}" class="fw-semibold ms-1 text-success">
+            Go to Staff Sign In
+          </a>
+        </div>
+        <a href="{{ url_for('login') }}" class="small text-muted">
+          <i class="fa-solid fa-arrow-left me-1"></i> Back to Customer &amp; Administrator Login
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

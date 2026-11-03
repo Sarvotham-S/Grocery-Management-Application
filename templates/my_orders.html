@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders - FreshMart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-1">
+        <i class="fa-solid fa-box-open text-success me-2"></i> My Order History
+      </h2>
+      <p class="text-muted small mb-0">Track and view all your past FreshMart grocery deliveries.</p>
+    </div>
+    <a href="{{ url_for('shop') }}" class="btn btn-sm btn-primary-fresh">
+      <i class="fa-solid fa-cart-plus me-1"></i> New Order
+    </a>
+  </div>
+
+  {% if orders %}
+    <div class="d-flex flex-column gap-3">
+      {% for entry in orders %}
+        {% set ord = entry.order %}
+        {% set items = entry['items'] %}
+        <div class="cart-card p-3 p-md-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 border-bottom mb-3 gap-2">
+            <div>
+              <span class="fw-bold text-dark fs-5">Order #FM-{{ ord.id }}</span>
+              <span class="text-muted small ms-2">
+                <i class="fa-regular fa-calendar me-1"></i> {{ ord.created_at }}
+              </span>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              {% if ord.status == 'Pending' %}
+                <span class="status-pill status-pending"><i class="fa-solid fa-hourglass-start"></i> Pending</span>
+              {% elif ord.status == 'Processing' %}
+                <span class="status-pill status-processing"><i class="fa-solid fa-dolly"></i> Processing</span>
+              {% elif ord.status == 'Out for Delivery' %}
+                <span class="status-pill status-out-for-delivery"><i class="fa-solid fa-truck-fast"></i> Out for Delivery</span>
+              {% elif ord.status == 'Delivered' %}
+                <span class="status-pill status-delivered"><i class="fa-solid fa-circle-check"></i> Delivered</span>
+              {% else %}
+                <span class="status-pill status-cancelled"><i class="fa-solid fa-ban"></i> Cancelled</span>
+              {% endif %}
+
+              <span class="badge bg-light text-dark border">
+                {{ ord.payment_method }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Items Row -->
+          <div class="row align-items-center g-3">
+            <div class="col-md-8">
+              <div class="d-flex flex-wrap gap-2 mb-2">
+                {% for item in items %}
+                  <div class="d-flex align-items-center bg-light p-2 rounded border small">
+                    <img
+                      src="{{ item.image_url }}"
+                      alt="{{ item.name }}"
+                      style="width: 32px; height: 32px; object-fit: cover; border-radius: 4px;"
+                      class="me-2"
+                      onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+                    >
+                    <div>
+                      <span class="fw-semibold">{{ item.name }}</span>
+                      <span class="text-muted">× {{ item.quantity }}</span>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="text-muted small">
+                <i class="fa-solid fa-location-dot me-1 text-danger"></i>
+                <span class="fw-semibold">Delivered to:</span> {{ ord.address }}
+              </div>
+            </div>
+
+            <div class="col-md-4 text-md-end border-md-start">
+              <div class="text-muted small">Total Paid Amount</div>
+              <div class="fw-bold text-success fs-4">₹{{ "%.2f"|format(ord.total_amount) }}</div>
+              <a href="{{ url_for('order_success', order_id=ord.id) }}" class="btn btn-sm btn-outline-success mt-2">
+                <i class="fa-solid fa-receipt me-1"></i> View Receipt
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <div class="empty-state-icon">
+        <i class="fa-solid fa-clock-rotate-left text-muted"></i>
+      </div>
+      <h3 class="fw-bold">No Past Orders Found</h3>
+      <p class="text-muted">You have not placed any grocery orders yet. Discover our fresh market selections today!</p>
+      <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh mt-2">
+        <i class="fa-solid fa-cart-shopping me-1"></i> Start Shopping
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

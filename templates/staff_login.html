@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Sign In - FreshMart Operations Portal{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header" style="background: linear-gradient(135deg, #0d4a28 0%, #062b16 100%);">
+      <div class="fs-1 mb-2">🧑‍💼</div>
+      <h3 class="auth-header-title">Staff Operations Portal</h3>
+      <p class="auth-header-subtitle">Dedicated sign-in for approved FreshMart staff members</p>
+    </div>
+
+    <div class="auth-body">
+      <form method="POST" action="{{ url_for('staff_login', next=request.args.get('next')) }}">
+        <div class="mb-3">
+          <label for="username" class="form-label">
+            <i class="fa-solid fa-user-tie me-1 text-success"></i> Staff Username
+          </label>
+          <input
+            type="text"
+            class="form-control fresh-input"
+            id="username"
+            name="username"
+            placeholder="Enter your staff username"
+            value="{{ username or '' }}"
+            required
+            autofocus
+          >
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">
+            <i class="fa-solid fa-lock me-1 text-success"></i> Password
+          </label>
+          <input
+            type="password"
+            class="form-control fresh-input"
+            id="password"
+            name="password"
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary-fresh w-100 py-2 mt-2">
+          <i class="fa-solid fa-shield-halved me-1"></i> Sign In as Staff
+        </button>
+      </form>
+
+      <div class="alert alert-warning small mt-4 mb-0 d-flex align-items-start">
+        <i class="fa-solid fa-user-clock me-2 mt-1"></i>
+        <div>
+          Staff accounts must be <strong>approved by an administrator</strong> before first sign-in.
+          Blacklisted accounts are blocked from this portal.
+        </div>
+      </div>
+
+      <!-- Demo Staff Credentials Quick-Fill Box -->
+      <div class="demo-credentials-box">
+        <div class="d-flex align-items-center mb-2 text-dark fw-bold">
+          <i class="fa-solid fa-key me-2 text-warning"></i>
+          <span>Demo Staff Access (Click to Fill):</span>
+        </div>
+
+        <div class="demo-cred-row">
+          <div>
+            <span class="badge badge-staff me-1">Staff</span>
+            <code>staff1</code> / <code>staff123</code>
+          </div>
+          <button type="button" class="btn-quick-fill" onclick="fillDemoLogin('staff1', 'staff123')">
+            Use Staff
+          </button>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 pt-2 border-top">
+        <div class="mb-2">
+          <span class="text-muted small">New staff member?</span>
+          <a href="{{ url_for('staff_register') }}" class="fw-semibold ms-1 text-success">
+            Request Staff Access
+          </a>
+        </div>
+        <a href="{{ url_for('login') }}" class="small text-muted">
+          <i class="fa-solid fa-arrow-left me-1"></i> Customer &amp; Administrator Login
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

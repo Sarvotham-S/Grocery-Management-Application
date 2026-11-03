@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Fulfillment Dashboard - FreshMart{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Staff Hero Header -->
+  <div class="dashboard-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <span class="badge bg-info text-dark fw-bold mb-2 px-3 py-1 rounded-pill">
+        <i class="fa-solid fa-boxes-packing me-1"></i> Order Fulfillment Team
+      </span>
+      <h2 class="fw-bold mb-1 text-white">Operations & Dispatch Station</h2>
+      <p class="text-white-50 mb-0">Welcome, {{ current_user.full_name or current_user.username }}! Monitor real-time orders and update delivery pipelines.</p>
+    </div>
+    <div>
+      <a href="{{ url_for('staff_orders') }}" class="btn btn-light fw-bold text-success shadow-sm">
+        <i class="fa-solid fa-truck-ramp-box me-1"></i> Open Order Dispatch Table
+      </a>
+    </div>
+  </div>
+
+  <!-- Status Metric Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Pending -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-warning">
+        <div>
+          <div class="stat-title">Needs Packing</div>
+          <div class="stat-value text-warning">{{ status_counts.get('Pending', 0) }}</div>
+          <div class="small text-muted mt-1">Pending approval</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #fff9db; color: #f08c00;">
+          <i class="fa-solid fa-hourglass-start"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-info">
+        <div>
+          <div class="stat-title">In Packing Stage</div>
+          <div class="stat-value text-info">{{ status_counts.get('Processing', 0) }}</div>
+          <div class="small text-muted mt-1">Under warehouse prep</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #e7f5ff; color: #1971c2;">
+          <i class="fa-solid fa-dolly"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Out for Delivery -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card">
+        <div>
+          <div class="stat-title">Out With Riders</div>
+          <div class="stat-value text-primary">{{ status_counts.get('Out for Delivery', 0) }}</div>
+          <div class="small text-muted mt-1">On the road</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #f3f0ff; color: #6741d9;">
+          <i class="fa-solid fa-truck-fast"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivered -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-success">
+        <div>
+          <div class="stat-title">Completed Orders</div>
+          <div class="stat-value text-success">{{ status_counts.get('Delivered', 0) }}</div>
+          <div class="small text-muted mt-1">Successfully fulfilled</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #ebfbee; color: #2b8a3e;">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Active Priority Queue -->
+  <div class="admin-table-card">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+      <div>
+        <h5 class="fw-bold mb-0">
+          <i class="fa-solid fa-bell text-warning me-2"></i> Priority Orders Requiring Immediate Action
+        </h5>
+        <span class="text-muted small">Orders that need packing, rider assignment, or status update</span>
+      </div>
+      <a href="{{ url_for('staff_orders') }}" class="btn btn-sm btn-outline-success">
+        Manage All Orders &rarr;
+      </a>
+    </div>
+
+    {% if active_orders %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Order Ref</th>
+              <th>Customer</th>
+              <th>Delivery Address</th>
+              <th>Bill Amount</th>
+              <th>Current Stage</th>
+              <th>Quick Update</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in active_orders %}
+              <tr>
+                <td class="fw-bold">#FM-{{ o.id }}</td>
+                <td>
+                  <div class="fw-semibold">{{ o.full_name or o.username }}</div>
+                  <span class="text-muted small">{{ o.created_at }}</span>
+                </td>
+                <td class="small text-muted" style="max-width: 280px;">
+                  <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ o.address }}
+                </td>
+                <td class="fw-bold text-success">₹{{ "%.2f"|format(o.total_amount) }}</td>
+                <td>
+                  {% if o.status == 'Pending' %}
+                    <span class="status-pill status-pending">Pending</span>
+                  {% elif o.status == 'Processing' %}
+                    <span class="status-pill status-processing">Processing</span>
+                  {% elif o.status == 'Out for Delivery' %}
+                    <span class="status-pill status-out-for-delivery">Out for Delivery</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form action="{{ url_for('staff_update_order', id=o.id) }}" method="POST" class="d-flex align-items-center gap-2">
+                    <select name="status" class="form-select form-select-sm" style="min-width: 140px;">
+                      <option value="Pending" {% if o.status == 'Pending' %}selected{% endif %}>Pending</option>
+                      <option value="Processing" {% if o.status == 'Processing' %}selected{% endif %}>Processing</option>
+                      <option value="Out for Delivery" {% if o.status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
+                      <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                      <option value="Cancelled" {% if o.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary-fresh py-1 px-2" title="Update Status">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="fa-solid fa-champagne-glasses text-success fs-2 mb-2 d-block"></i>
+        <h5>All active orders are currently completed!</h5>
+        <p class="small mb-0">No pending orders awaiting packing or delivery right now.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}FreshMart - Fresh Groceries Delivered Quickly{% endblock %}</title>
+
+  <!-- Google Fonts: Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Bootstrap 5 CSS CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Notification & Banner Bar -->
+  <div class="bg-dark text-white py-1 text-center small d-none d-md-block" style="background-color: #0b381e !important; font-size: 0.82rem;">
+    <span>⚡ Free Express Delivery on orders above ₹500 | 100% Organic & Farm Fresh Guarantee</span>
+  </div>
+
+  <!-- Main FreshMart Navbar -->
+  <nav class="navbar navbar-expand-lg fresh-navbar">
+    <div class="container">
+      <a class="navbar-brand fresh-brand" href="{{ url_for('index') }}">
+        <span class="store-icon">🛒</span>
+        <span>FreshMart</span>
+      </a>
+
+      <button class="navbar-toggler text-white border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#freshNavbarNav" aria-controls="freshNavbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa-solid fa-bars fs-4 text-white"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="freshNavbarNav">
+        <!-- Center / General Nav Links -->
+        <ul class="navbar-nav me-auto ms-lg-4 mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link fresh-nav-link" href="{{ url_for('shop') }}">
+              <i class="fa-solid fa-store"></i> Shop Fresh
+            </a>
+          </li>
+
+          {% if current_user and current_user.role == 'customer' %}
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('my_orders') }}">
+                <i class="fa-solid fa-box-open"></i> My Orders
+              </a>
+            </li>
+          {% endif %}
+
+          {% if current_user and current_user.role == 'admin' %}
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('admin_dashboard') }}">
+                <i class="fa-solid fa-chart-line"></i> Admin Dashboard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('admin_items') }}">
+                <i class="fa-solid fa-cubes"></i> Inventory
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('admin_transactions') }}">
+                <i class="fa-solid fa-receipt"></i> Orders & Billing
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('admin_users') }}">
+                <i class="fa-solid fa-users-gear"></i> User Access
+                {% if pending_approvals %}
+                  <span class="badge bg-warning text-dark rounded-pill ms-1">{{ pending_approvals }}</span>
+                {% endif %}
+              </a>
+            </li>
+          {% endif %}
+
+          {% if current_user and current_user.role == 'staff' %}
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('staff_dashboard') }}">
+                <i class="fa-solid fa-clipboard-check"></i> Staff Hub
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('staff_orders') }}">
+                <i class="fa-solid fa-truck-fast"></i> Manage Deliveries
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+
+        <!-- Right Side Nav Actions -->
+        <ul class="navbar-nav ms-auto align-items-lg-center">
+          <!-- Cart Link (Customer & Guest) -->
+          {% if not current_user or current_user.role == 'customer' %}
+            <li class="nav-item me-lg-3 my-1 my-lg-0">
+              <a class="nav-link fresh-nav-link cart-nav-btn text-white" href="{{ url_for('view_cart') }}">
+                <i class="fa-solid fa-basket-shopping me-1"></i> Cart
+                <span class="cart-badge" id="navCartBadge">{{ global_cart_count or 0 }}</span>
+              </a>
+            </li>
+          {% endif %}
+
+          {% if current_user %}
+            <li class="nav-item dropdown my-1 my-lg-0">
+              <a class="nav-link fresh-nav-link dropdown-toggle text-white d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-circle-user fs-5 me-1 text-light"></i>
+                <span class="fw-semibold">{{ current_user.full_name or current_user.username }}</span>
+                {% if current_user.role == 'admin' %}
+                  <span class="user-role-badge badge-admin">Admin</span>
+                {% elif current_user.role == 'staff' %}
+                  <span class="user-role-badge badge-staff">Staff</span>
+                {% else %}
+                  <span class="user-role-badge badge-customer">Customer</span>
+                {% endif %}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                <li><h6 class="dropdown-header text-muted">Signed in as <strong>{{ current_user.username }}</strong></h6></li>
+                <li><hr class="dropdown-divider"></li>
+                {% if current_user.role == 'customer' %}
+                  <li><a class="dropdown-item py-2" href="{{ url_for('my_orders') }}"><i class="fa-solid fa-receipt me-2 text-success"></i> My Order History</a></li>
+                  <li><a class="dropdown-item py-2" href="{{ url_for('view_cart') }}"><i class="fa-solid fa-basket-shopping me-2 text-primary"></i> View Shopping Cart</a></li>
+                {% elif current_user.role == 'admin' %}
+                  <li><a class="dropdown-item py-2" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-gauge me-2 text-danger"></i> Admin Center</a></li>
+                  <li><a class="dropdown-item py-2" href="{{ url_for('admin_add_item') }}"><i class="fa-solid fa-plus-circle me-2 text-success"></i> Add New Product</a></li>
+                  <li><a class="dropdown-item py-2" href="{{ url_for('admin_users') }}"><i class="fa-solid fa-users-gear me-2 text-warning"></i> User Access &amp; Approvals</a></li>
+                {% elif current_user.role == 'staff' %}
+                  <li><a class="dropdown-item py-2" href="{{ url_for('staff_dashboard') }}"><i class="fa-solid fa-gauge me-2 text-primary"></i> Staff Dashboard</a></li>
+                  <li><a class="dropdown-item py-2" href="{{ url_for('staff_orders') }}"><i class="fa-solid fa-dolly me-2 text-info"></i> Active Order Queue</a></li>
+                {% endif %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger py-2" href="{{ url_for('logout') }}"><i class="fa-solid fa-right-from-bracket me-2"></i> Sign Out</a></li>
+              </ul>
+            </li>
+          {% else %}
+            <li class="nav-item me-2">
+              <a class="nav-link fresh-nav-link" href="{{ url_for('login') }}">
+                <i class="fa-solid fa-arrow-right-to-bracket me-1"></i> Log In
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-sm btn-light fw-semibold text-dark px-3 py-1 rounded-pill" href="{{ url_for('register') }}">
+                Create Account
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Message Container -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show alert-dismiss-smooth alert-auto-dismiss shadow-sm d-flex align-items-center" role="alert">
+            <i class="fa-solid {% if category == 'success' %}fa-circle-check text-success{% elif category == 'danger' or category == 'error' %}fa-circle-xmark text-danger{% else %}fa-circle-info text-primary{% endif %} me-2 fs-5"></i>
+            <div>{{ message }}</div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <!-- Main Body Content -->
+  <main class="py-3">
+    {% if not_found %}
+      <div class="container text-center py-5">
+        <div class="empty-state-box">
+          <div class="empty-state-icon"><i class="fa-solid fa-basket-shopping-slash text-muted"></i></div>
+          <h2 class="fw-bold">404 - Page Not Found</h2>
+          <p class="text-muted">The page or grocery aisle you are searching for does not exist.</p>
+          <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh mt-2">
+            <i class="fa-solid fa-store me-1"></i> Return to FreshMart Shop
+          </a>
+        </div>
+      </div>
+    {% elif server_error %}
+      <div class="container text-center py-5">
+        <div class="empty-state-box">
+          <div class="empty-state-icon text-danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h2 class="fw-bold text-danger">500 - Server Encountered an Error</h2>
+          <p class="text-muted">An internal error occurred while processing your request. Please try again.</p>
+          <a href="{{ url_for('shop') }}" class="btn btn-primary-fresh mt-2">
+            <i class="fa-solid fa-house me-1"></i> Back to Homepage
+          </a>
+        </div>
+      </div>
+    {% else %}
+      {% block content %}{% endblock %}
+    {% endif %}
+  </main>
+
+  <!-- Global Toast Notification Container -->
+  <div id="toastContainer" class="toast-container-custom"></div>
+
+  <!-- FreshMart Footer -->
+  <footer class="fresh-footer">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <h5 class="text-white fw-bold d-flex align-items-center mb-3">
+            <span class="me-2">🛒</span> FreshMart
+          </h5>
+          <p class="small text-light-50">
+            Your neighborhood online grocery supermarket delivering orchard-fresh fruits, crisp vegetables, farm dairy, bakery goods, and daily essentials straight to your kitchen door.
+          </p>
+          <div class="d-flex gap-3 mt-3 fs-5">
+            <a href="#" class="text-light" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" class="text-light" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" class="text-light" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="#" class="text-light" title="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-6 col-6">
+          <h6 class="text-white fw-bold mb-3">Grocery Aisles</h6>
+          <ul class="list-unstyled small">
+            <li class="mb-2"><a href="{{ url_for('shop') }}?category=1">Fresh Fruits</a></li>
+            <li class="mb-2"><a href="{{ url_for('shop') }}?category=2">Farm Vegetables</a></li>
+            <li class="mb-2"><a href="{{ url_for('shop') }}?category=3">Dairy & Eggs</a></li>
+            <li class="mb-2"><a href="{{ url_for('shop') }}?category=4">Artisanal Bakery</a></li>
+            <li class="mb-2"><a href="{{ url_for('shop') }}?category=5">Cold Beverages</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-2 col-md-6 col-6">
+          <h6 class="text-white fw-bold mb-3">Quick Links</h6>
+          <ul class="list-unstyled small">
+            <li class="mb-2"><a href="{{ url_for('shop') }}">Store Catalog</a></li>
+            <li class="mb-2"><a href="{{ url_for('view_cart') }}">View Cart</a></li>
+            <li class="mb-2"><a href="{{ url_for('login') }}">Account Login</a></li>
+            <li class="mb-2"><a href="{{ url_for('staff_login') }}">Staff Portal</a></li>
+            <li class="mb-2"><a href="{{ url_for('register') }}">Create Account</a></li>
+          </ul>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+          <h6 class="text-white fw-bold mb-3">Store Contact & Help</h6>
+          <ul class="list-unstyled small text-light-50">
+            <li class="mb-2"><i class="fa-solid fa-location-dot me-2 text-warning"></i> 104 Greenfield Avenue, Indiranagar, Bengaluru</li>
+            <li class="mb-2"><i class="fa-solid fa-phone me-2 text-warning"></i> +91 (800) 456-7890 (Toll Free)</li>
+            <li class="mb-2"><i class="fa-solid fa-envelope me-2 text-warning"></i> support@freshmart.local</li>
+            <li class="mb-2"><i class="fa-solid fa-clock me-2 text-warning"></i> Delivery Hours: 6:00 AM - 11:00 PM Daily</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-bar">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+          <div>&copy; 2026 FreshMart Supermarket Pvt. Ltd. All rights reserved.</div>
+          <div class="mt-2 mt-md-0">
+            <span class="badge bg-success bg-opacity-25 text-success me-2">FSSAI Certified</span>
+            <span class="badge bg-primary bg-opacity-25 text-info">Fast 30-Min Dispatch</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+  <!-- Custom Main JS -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders & Fulfillment - FreshMart Staff{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('staff_dashboard') }}">Staff</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Manage Orders</li>
+        </ol>
+      </nav>
+      <h2 class="fw-bold mb-0">
+        <i class="fa-solid fa-truck-ramp-box text-success me-2"></i> Order Dispatch & Fulfillment
+      </h2>
+      <p class="text-muted small mb-0">Update packing milestones, rider dispatches, and delivery confirmations.</p>
+    </div>
+
+    <!-- Status filter pills -->
+    <div class="d-flex flex-wrap gap-1">
+      <a href="{{ url_for('staff_orders') }}" class="btn btn-sm {% if not current_filter %}btn-success{% else %}btn-outline-secondary{% endif %}">
+        All Orders
+      </a>
+      <a href="{{ url_for('staff_orders', status='Pending') }}" class="btn btn-sm {% if current_filter == 'Pending' %}btn-warning text-dark{% else %}btn-outline-warning text-dark{% endif %}">
+        Pending
+      </a>
+      <a href="{{ url_for('staff_orders', status='Processing') }}" class="btn btn-sm {% if current_filter == 'Processing' %}btn-info text-white{% else %}btn-outline-info{% endif %}">
+        Processing
+      </a>
+      <a href="{{ url_for('staff_orders', status='Out for Delivery') }}" class="btn btn-sm {% if current_filter == 'Out for Delivery' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+        Out for Delivery
+      </a>
+      <a href="{{ url_for('staff_orders', status='Delivered') }}" class="btn btn-sm {% if current_filter == 'Delivered' %}btn-success{% else %}btn-outline-success{% endif %}">
+        Delivered
+      </a>
+    </div>
+  </div>
+
+  <div class="admin-table-card">
+    {% if orders_data %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer &amp; Contact</th>
+              <th>Delivery Address</th>
+              <th>Items Packed</th>
+              <th>Total Bill</th>
+              <th>Current Status</th>
+              <th>Update Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for entry in orders_data %}
+              {% set o = entry.order %}
+              {% set items = entry['items'] %}
+              <tr>
+                <td class="fw-bold">#FM-{{ o.id }}</td>
+                <td>
+                  <div class="fw-bold text-dark">{{ o.full_name or o.username }}</div>
+                  <div class="small text-muted">{{ o.email }}</div>
+                  <div class="small text-muted">{{ o.created_at }}</div>
+                </td>
+                <td class="small text-muted" style="max-width: 260px;">
+                  <i class="fa-solid fa-location-dot text-danger me-1"></i> {{ o.address }}
+                </td>
+                <td>
+                  <div class="d-flex flex-wrap gap-1" style="max-width: 250px;">
+                    {% for itm in items %}
+                      <span class="badge bg-light text-dark border small">
+                        {{ itm.name }} (×{{ itm.quantity }})
+                      </span>
+                    {% endfor %}
+                  </div>
+                </td>
+                <td class="fw-bold text-success">
+                  ₹{{ "%.2f"|format(o.total_amount) }}
+                  <div class="small text-muted fw-normal">via {{ o.payment_method }}</div>
+                </td>
+                <td>
+                  {% if o.status == 'Pending' %}
+                    <span class="status-pill status-pending"><i class="fa-solid fa-hourglass-start"></i> Pending</span>
+                  {% elif o.status == 'Processing' %}
+                    <span class="status-pill status-processing"><i class="fa-solid fa-dolly"></i> Processing</span>
+                  {% elif o.status == 'Out for Delivery' %}
+                    <span class="status-pill status-out-for-delivery"><i class="fa-solid fa-truck-fast"></i> Out for Delivery</span>
+                  {% elif o.status == 'Delivered' %}
+                    <span class="status-pill status-delivered"><i class="fa-solid fa-circle-check"></i> Delivered</span>
+                  {% else %}
+                    <span class="status-pill status-cancelled"><i class="fa-solid fa-ban"></i> Cancelled</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <form action="{{ url_for('staff_update_order', id=o.id) }}" method="POST" class="d-flex align-items-center gap-1">
+                    <select name="status" class="form-select form-select-sm" style="min-width: 135px;">
+                      <option value="Pending" {% if o.status == 'Pending' %}selected{% endif %}>Pending</option>
+                      <option value="Processing" {% if o.status == 'Processing' %}selected{% endif %}>Processing</option>
+                      <option value="Out for Delivery" {% if o.status == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
+                      <option value="Delivered" {% if o.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                      <option value="Cancelled" {% if o.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-primary-fresh py-1 px-2" title="Save Status">
+                      <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="p-5 text-center text-muted">
+        <i class="fa-solid fa-box-open fs-1 mb-3"></i>
+        <h5>No Orders Found</h5>
+        <p class="small mb-0">No active orders found matching this criteria.</p>
+        <a href="{{ url_for('staff_orders') }}" class="btn btn-sm btn-secondary-fresh mt-2">Reset Filter</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

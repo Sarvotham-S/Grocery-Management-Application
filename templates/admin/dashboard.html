@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - FreshMart Control Center{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Admin Hero Header -->
+  <div class="dashboard-hero d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+    <div>
+      <span class="badge bg-warning text-dark fw-bold mb-2 px-3 py-1 rounded-pill">
+        <i class="fa-solid fa-crown me-1"></i> Store Administrator
+      </span>
+      <h2 class="fw-bold mb-1 text-white">Operations & Analytics Dashboard</h2>
+      <p class="text-white-50 mb-0">Overview of product catalog, inventory health, revenue, and customer order flow.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('admin_add_item') }}" class="btn btn-light fw-bold text-success shadow-sm">
+        <i class="fa-solid fa-plus-circle me-1"></i> Add Product
+      </a>
+      <a href="{{ url_for('admin_items') }}" class="btn btn-outline-light">
+        <i class="fa-solid fa-boxes-stacked me-1"></i> Inventory
+      </a>
+      <a href="{{ url_for('admin_users') }}" class="btn btn-outline-light position-relative">
+        <i class="fa-solid fa-users-gear me-1"></i> User Access
+        {% if pending_approvals %}
+          <span class="badge bg-warning text-dark rounded-pill ms-1">{{ pending_approvals }}</span>
+        {% endif %}
+      </a>
+    </div>
+  </div>
+
+  {% if pending_approvals %}
+    <div class="alert alert-warning d-flex align-items-center justify-content-between flex-wrap gap-2 shadow-sm">
+      <div class="d-flex align-items-center">
+        <i class="fa-solid fa-user-clock fs-5 me-2"></i>
+        <span><strong>{{ pending_approvals }}</strong> staff account(s) are awaiting your approval and cannot sign in yet.</span>
+      </div>
+      <a href="{{ url_for('admin_users', status='pending') }}" class="btn btn-sm btn-warning fw-semibold">
+        Review Approvals
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Metric Stats Cards -->
+  <div class="row g-3 mb-4">
+    <!-- Total Revenue -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-success">
+        <div>
+          <div class="stat-title">Total Revenue</div>
+          <div class="stat-value text-success">₹{{ "%.2f"|format(total_revenue) }}</div>
+          <div class="small text-muted mt-1"><i class="fa-solid fa-arrow-trend-up text-success me-1"></i>Non-cancelled orders</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #e8f5e9; color: #1a6b3c;">
+          <i class="fa-solid fa-indian-rupee-sign"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Orders -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-info">
+        <div>
+          <div class="stat-title">Total Orders</div>
+          <div class="stat-value text-info">{{ total_orders }}</div>
+          <div class="small text-muted mt-1"><i class="fa-solid fa-bag-shopping text-info me-1"></i>All-time checkouts</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #e1f5fe; color: #0288d1;">
+          <i class="fa-solid fa-cart-shopping"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Products -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card">
+        <div>
+          <div class="stat-title">Active Products</div>
+          <div class="stat-value text-primary">{{ total_products }}</div>
+          <div class="small text-muted mt-1"><i class="fa-solid fa-barcode text-primary me-1"></i>In store catalog</div>
+        </div>
+        <div class="stat-icon-wrapper">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="col-sm-6 col-lg-3">
+      <div class="stat-card stat-warning">
+        <div>
+          <div class="stat-title">Low Stock Alert</div>
+          <div class="stat-value text-warning">{{ low_stock_count }}</div>
+          <div class="small text-muted mt-1"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i>Stock &le; 5 units</div>
+        </div>
+        <div class="stat-icon-wrapper" style="background: #fff8e1; color: #f57f17;">
+          <i class="fa-solid fa-boxes-packing"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Recent Orders Table -->
+    <div class="col-lg-8">
+      <div class="admin-table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+          <h5 class="fw-bold mb-0">
+            <i class="fa-solid fa-receipt text-success me-2"></i> Recent Customer Orders
+          </h5>
+          <a href="{{ url_for('admin_transactions') }}" class="btn btn-sm btn-outline-success">
+            View All Transactions &rarr;
+          </a>
+        </div>
+
+        {% if recent_orders %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for o in recent_orders %}
+                  <tr>
+                    <td class="fw-bold">#FM-{{ o.id }}</td>
+                    <td>
+                      <div class="fw-semibold">{{ o.full_name or o.username }}</div>
+                      <div class="small text-muted">@{{ o.username }}</div>
+                    </td>
+                    <td class="fw-bold text-success">₹{{ "%.2f"|format(o.total_amount) }}</td>
+                    <td>
+                      <span class="badge bg-light text-dark border">{{ o.payment_method }}</span>
+                    </td>
+                    <td>
+                      {% if o.status == 'Pending' %}
+                        <span class="status-pill status-pending">Pending</span>
+                      {% elif o.status == 'Processing' %}
+                        <span class="status-pill status-processing">Processing</span>
+                      {% elif o.status == 'Out for Delivery' %}
+                        <span class="status-pill status-out-for-delivery">Out for Delivery</span>
+                      {% elif o.status == 'Delivered' %}
+                        <span class="status-pill status-delivered">Delivered</span>
+                      {% else %}
+                        <span class="status-pill status-cancelled">Cancelled</span>
+                      {% endif %}
+                    </td>
+                    <td class="small text-muted">{{ o.created_at }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted">No orders recorded yet.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Low Stock Inventory Alerts -->
+    <div class="col-lg-4">
+      <div class="admin-table-card">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+          <h5 class="fw-bold mb-0 text-danger">
+            <i class="fa-solid fa-triangle-exclamation me-2"></i> Low Stock Warning
+          </h5>
+          <a href="{{ url_for('admin_items') }}" class="btn btn-sm btn-outline-danger">
+            Manage
+          </a>
+        </div>
+
+        {% if low_stock_products %}
+          <div class="list-group list-group-flush">
+            {% for prod in low_stock_products %}
+              <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <div class="d-flex align-items-center">
+                  <img
+                    src="{{ prod.image_url }}"
+                    alt="{{ prod.name }}"
+                    style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;"
+                    class="me-2 border"
+                    onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop&q=80';"
+                  >
+                  <div>
+                    <div class="fw-semibold small">{{ prod.name }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">{{ prod.category_name }} &bull; ₹{{ "%.2f"|format(prod.price) }}</div>
+                  </div>
+                </div>
+                <div>
+                  {% if prod.stock == 0 %}
+                    <span class="badge bg-danger">OUT OF STOCK</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">{{ prod.stock }} left</span>
+                  {% endif %}
+                  <a href="{{ url_for('admin_edit_item', id=prod.id) }}" class="btn btn-sm btn-link text-decoration-none p-0 ms-2">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="p-4 text-center text-muted">
+            <i class="fa-solid fa-circle-check text-success fs-3 mb-2 d-block"></i>
+            All inventory levels are currently healthy!
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
